@@ -1,0 +1,40 @@
+*.DS_Store
+
+# eclipse
+.project
+.classpath
+/.settings/
+# idea/android studio
+/.idea/
+/.gradle/
+
+/app/build/
+/app/src/main/libs/
+/app/src/main/obj/
+*.iml
+
+/apk/
+/bin/
+/gen/
+/build/
+/obj/
+/out/
+build.xml
+local.properties
+local-build.sh
+vendor.all
+*.swp
+*.pyc
+
+# proguards
+app/proguards/class_files.txt
+app/proguards/mapping.txt
+app/proguards/seeds.txt
+
+# ctags
+.tags*
+# cscope
+cscope*
+
+# android tools
+captures/*
