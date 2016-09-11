@@ -42,7 +42,7 @@ public class DoubleStickyHeaderListView extends ListView {
     private final Rect mTouchRect = new Rect();
     private final PointF mTouchPoint = new PointF();
     private View mTouchTarget;
-    private int mTouchTargetType;
+    private int mTouchTargetLevel;
 
     private int mHeadersDistanceY0;
     private int mHeadersDistanceY1;
@@ -92,14 +92,13 @@ public class DoubleStickyHeaderListView extends ListView {
                     destroyPinnedShadow(HEADER_LEVEL_1);
                 } else {
                     int stickyHeaderPosition1;
-                 if (adapter.getItemViewType(firstVisibleItem + 1) == HEADER_LEVEL_0) {
+                 if (((DoubleStickHeadersListAdapter)adapter).getHeaderLevel(firstVisibleItem + 1) == HEADER_LEVEL_0) {
                         stickyHeaderPosition1 = -1;
                     } else {
                         stickyHeaderPosition1 = isLevel1HeaderSticky(firstVisibleItem + 1) ? (firstVisibleItem + 1) : -1;
                     }
                     ensureShadowForPosition(firstVisibleItem, stickyHeaderPosition1, firstVisibleItem, visibleItemCount);
                 }
-
             } else {
                 int stickyHeaderPosition0 = findCurrentStickyHeaderPosition(firstVisibleItem, HEADER_LEVEL_0);
                 int stickyHeaderPosition1 = findCurrentLevel2StickyHeaderPosition(firstVisibleItem);
@@ -139,10 +138,10 @@ public class DoubleStickyHeaderListView extends ListView {
         setOnScrollListener(mOnScrollListener);
     }
 
-    void createPinnedShadow(int stickyHeaderPosition, int type) {
+    void createPinnedShadow(int stickyHeaderPosition, int level) {
 
-        StickyHeader pinnedShadow = type == HEADER_LEVEL_0 ? mRecycleHeader0 : mRecycleHeader1;
-        if (type == HEADER_LEVEL_0) {
+        StickyHeader pinnedShadow = level == HEADER_LEVEL_0 ? mRecycleHeader0 : mRecycleHeader1;
+        if (level == HEADER_LEVEL_0) {
             mRecycleHeader0 = null;
         } else {
             mRecycleHeader1 = null;
@@ -152,9 +151,9 @@ public class DoubleStickyHeaderListView extends ListView {
 
         View pinnedView = getAdapter().getView(stickyHeaderPosition, pinnedShadow.view, DoubleStickyHeaderListView.this);
 
-        ViewGroup.LayoutParams layoutParams = (ViewGroup.LayoutParams) pinnedView.getLayoutParams();
+        ViewGroup.LayoutParams layoutParams = pinnedView.getLayoutParams();
         if (layoutParams == null) {
-            layoutParams = (ViewGroup.LayoutParams) generateDefaultLayoutParams();
+            layoutParams = generateDefaultLayoutParams();
             pinnedView.setLayoutParams(layoutParams);
         }
 
@@ -170,9 +169,9 @@ public class DoubleStickyHeaderListView extends ListView {
         int hs = MeasureSpec.makeMeasureSpec(heightSize, heightMode);
         pinnedView.measure(ws, hs);
         pinnedView.layout(0, 0, pinnedView.getMeasuredWidth(), pinnedView.getMeasuredHeight());
-        if (type == HEADER_LEVEL_0) {
+        if (level == HEADER_LEVEL_0) {
             mTranslateY0 = 0;
-        } else if (type == HEADER_LEVEL_1) {
+        } else if (level == HEADER_LEVEL_1) {
             mTranslateY1 = 0;
         }
 
@@ -180,20 +179,20 @@ public class DoubleStickyHeaderListView extends ListView {
         pinnedShadow.position = stickyHeaderPosition;
         pinnedShadow.id = getAdapter().getItemId(stickyHeaderPosition);
 
-        if (type == HEADER_LEVEL_0) {
+        if (level == HEADER_LEVEL_0) {
             mStickyHeader0 = pinnedShadow;
         } else {
             mStickyHeader1 = pinnedShadow;
         }
     }
 
-    void destroyPinnedShadow(int type) {
-        if (type == HEADER_LEVEL_0) {
+    void destroyPinnedShadow(int level) {
+        if (level == HEADER_LEVEL_0) {
             if (mStickyHeader0 != null) {
                 mRecycleHeader0 = mStickyHeader0;
                 mStickyHeader0 = null;
             }
-        } else if (type == HEADER_LEVEL_1) {
+        } else if (level == HEADER_LEVEL_1) {
             if (mStickyHeader1 != null) {
                 mRecycleHeader1 = mStickyHeader1;
                 mStickyHeader1 = null;
@@ -271,10 +270,13 @@ public class DoubleStickyHeaderListView extends ListView {
     }
 
     boolean isLevel1HeaderSticky(int position) {
-        return getAdapter().getItemViewType(position + 1) == HEADER_LEVEL_2;
+        if (position + 1 >= getAdapter().getCount()) {
+            return false;
+        }
+        return ((DoubleStickHeadersListAdapter)getAdapter()).getHeaderLevel(position + 1) == HEADER_LEVEL_2;
     }
 
-    int findFirstVisibleStickyHeaderPosition(int firstVisibleItem, int visibleItemCount, int type) {
+    int findFirstVisibleStickyHeaderPosition(int firstVisibleItem, int visibleItemCount, int level) {
         ListAdapter adapter = getAdapter();
 
         int adapterDataCount = adapter.getCount();
@@ -287,20 +289,20 @@ public class DoubleStickyHeaderListView extends ListView {
 
         for (int childIndex = 0; childIndex < visibleItemCount; childIndex++) {
             int position = firstVisibleItem + childIndex;
-            int viewType = adapter.getItemViewType(position);
-            if (type == HEADER_LEVEL_0 && viewType == type)
+            int headerLevel = ((DoubleStickHeadersListAdapter)getAdapter()).getHeaderLevel(position);
+            if (level == HEADER_LEVEL_0 && headerLevel == level)
                 return position;
-            if (type == HEADER_LEVEL_1 && viewType == type) return position;
+            if (level == HEADER_LEVEL_1 && headerLevel == level) return position;
         }
         return -1;
     }
 
     int findCurrentLevel2StickyHeaderPosition(int firstVisibleItem) {
-        int viewType = getAdapter().getItemViewType(firstVisibleItem + 1);
+        int headerLevel = ((DoubleStickHeadersListAdapter)getAdapter()).getHeaderLevel(firstVisibleItem + 1);
         int stickyHeaderPosition1;
-        if (viewType == HEADER_LEVEL_2) {
+        if (headerLevel == HEADER_LEVEL_2) {
             stickyHeaderPosition1 = findCurrentStickyHeaderPosition(firstVisibleItem + 1, 1);
-        } else if (viewType == HEADER_LEVEL_1) {
+        } else if (headerLevel == HEADER_LEVEL_1) {
             if (isLevel1HeaderSticky(firstVisibleItem + 1)) {
                 stickyHeaderPosition1 = firstVisibleItem + 1;
             } else {
@@ -312,16 +314,16 @@ public class DoubleStickyHeaderListView extends ListView {
         return stickyHeaderPosition1;
     }
 
-    int findCurrentStickyHeaderPosition(int fromPosition, int type) {
+    int findCurrentStickyHeaderPosition(int fromPosition, int level) {
         ListAdapter adapter = getAdapter();
 
         if (fromPosition >= adapter.getCount()) return -1; 
 
         for (int position = fromPosition; position >= 0; position--) {
-            int viewType = adapter.getItemViewType(position);
-            if (type == HEADER_LEVEL_0 && viewType == type)
+            int headerLevel = ((DoubleStickHeadersListAdapter)getAdapter()).getHeaderLevel(position);
+            if (level == HEADER_LEVEL_0 && headerLevel == level)
                 return position;
-            if (type == HEADER_LEVEL_1 && viewType == type) return position;
+            if (level == HEADER_LEVEL_1 && headerLevel == level) return position;
         }
         return -1;
     }
@@ -431,14 +433,14 @@ public class DoubleStickyHeaderListView extends ListView {
         if (mStickyHeader0 != null && isStickyHeaderTouched(mStickyHeader0.view, x, y, HEADER_LEVEL_0)) {
             mTouchTarget = mStickyHeader0.view;
             mStickyCatchTouch = true;
-            mTouchTargetType = HEADER_LEVEL_0;
+            mTouchTargetLevel = HEADER_LEVEL_0;
             mTouchPoint.x = x;
             mTouchPoint.y = y;
         }
         if (mStickyHeader1 != null && isStickyHeaderTouched(mStickyHeader1.view, x, y - mStickyHeader0.view.getHeight(), HEADER_LEVEL_1)) {
             mTouchTarget = mStickyHeader1.view;
             mStickyCatchTouch = true;
-            mTouchTargetType = HEADER_LEVEL_1;
+            mTouchTargetLevel = HEADER_LEVEL_1;
             mTouchPoint.x = x;
             mTouchPoint.y = y;
             ev.setLocation(x, y - mStickyHeader0.view.getHeight());
@@ -471,7 +473,7 @@ public class DoubleStickyHeaderListView extends ListView {
                         mTouchTarget.setPressed(false);
                         invalidate();
                     }
-                    int postion = mTouchTargetType == HEADER_LEVEL_0 ? mStickyHeader0.position : mStickyHeader1.position;
+                    int postion = mTouchTargetLevel == HEADER_LEVEL_0 ? mStickyHeader0.position : mStickyHeader1.position;
                     performItemClick(mTouchTarget, postion, postion);
                 }
             }
@@ -482,10 +484,10 @@ public class DoubleStickyHeaderListView extends ListView {
         return super.dispatchTouchEvent(ev);
     }
 
-    private boolean isStickyHeaderTouched(View view, float x, float y, int type) {
+    private boolean isStickyHeaderTouched(View view, float x, float y, int level) {
         view.getHitRect(mTouchRect);
 
-        int translateY = type == HEADER_LEVEL_0 ? mTranslateY0 : mTranslateY1;
+        int translateY = level == HEADER_LEVEL_0 ? mTranslateY0 : mTranslateY1;
         mTouchRect.top += translateY;
         mTouchRect.bottom += translateY + getPaddingTop();
         mTouchRect.left += getPaddingLeft();

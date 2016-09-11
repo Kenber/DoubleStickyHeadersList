@@ -21,21 +21,18 @@ public class ListAdapter extends ArrayAdapter<ListItem> implements DoubleStickHe
     private static final int LEVEL1_HEADERS_NUMBER = 4;
     private static final int LEVEL2_HEADERS_NUMBER = 5;
 
-    private static final int[] BG_COLORS = {
-            android.R.color.holo_blue_dark, android.R.color.holo_red_dark,
-            android.R.color.holo_orange_dark, android.R.color.holo_green_dark};
-
-    public ListAdapter(Context context, int resource) {
-        super(context, resource);
+    private static final int BG_COLOR_LEVEL_0 = android.R.color.holo_purple;
+    private static final int BG_COLOR_LEVEL_1 = android.R.color.holo_green_light;
+    private static final int BG_COLOR_LEVEL_2 = android.R.color.white;
+    public ListAdapter(Context context, int resource, int textViewResourceId) {
+        super(context, resource, textViewResourceId);
         genListData();
     }
 
     public void genListData() {
 
-        int listPosition = 0;
         for (char i = 0; i < LEVEL0_HEADERS_NUMBER; i++) {
             ListItem level0Header = new ListItem(DoubleStickyHeaderListView.HEADER_LEVEL_0, String.valueOf((char)('A' + i)));
-            level0Header.listPosition = listPosition++;
             add(level0Header);
 
             for (char j = 0; j < LEVEL1_HEADERS_NUMBER; j++) {
@@ -45,7 +42,6 @@ public class ListAdapter extends ArrayAdapter<ListItem> implements DoubleStickHe
 
                 for (int k = 0; k < LEVEL2_HEADERS_NUMBER; k++) {
                     ListItem level2Header = new ListItem(DoubleStickyHeaderListView.HEADER_LEVEL_2, level1Header.text + " - " + k);
-                    level2Header.listPosition = listPosition++;
                     add(level2Header);
                 }
             }
@@ -58,10 +54,13 @@ public class ListAdapter extends ArrayAdapter<ListItem> implements DoubleStickHe
         TextView view = (TextView) super.getView(position, convertView, parent);
         view.setTextColor(Color.BLACK);
         view.setTag("" + position);
-        ListItem item = getItem(position);
-        if (item.level == DoubleStickyHeaderListView.HEADER_LEVEL_0 ||
-            item.level == DoubleStickyHeaderListView.HEADER_LEVEL_1) {
-            view.setBackgroundColor(parent.getResources().getColor(BG_COLORS[item.listPosition % BG_COLORS.length]));
+        int level = getHeaderLevel(position);
+        if (level == DoubleStickyHeaderListView.HEADER_LEVEL_0) {
+            view.setBackgroundColor(parent.getResources().getColor(BG_COLOR_LEVEL_0));
+        } else if (level == DoubleStickyHeaderListView.HEADER_LEVEL_1) {
+            view.setBackgroundColor(parent.getResources().getColor(BG_COLOR_LEVEL_1));
+        } else {
+            view.setBackgroundColor(parent.getResources().getColor(BG_COLOR_LEVEL_2));
         }
         return view;
     }
