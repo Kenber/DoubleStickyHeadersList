@@ -7,8 +7,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.kenber.doublestickyheaderslist.R;
-import com.kenber.doublestickyheaderslist.data.ListItem;
 import com.kenber.doublestickyheaderslist.ui.ListAdapter;
+import com.kenber.view.DoubleStickHeaderItem;
 
 /**
  * @author Kenber
@@ -24,9 +24,9 @@ public class DoubleStickyHeadersListActivity extends ListActivity implements Vie
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-        ListItem item  = (ListItem) getListView().getAdapter().getItem(position);
+        DoubleStickHeaderItem item  = (DoubleStickHeaderItem) getListView().getAdapter().getItem(position);
         if (item != null) {
-            Toast.makeText(getApplicationContext(), "Item " + position + ": level " + item.level + ", text: " + item.text, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Item " + position + ": level " + item.getLevel() + ", text: " + item.getItem().toString(), Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(getApplicationContext(), "Item " + position + ": not exist", Toast.LENGTH_SHORT).show();
         }
