@@ -5,9 +5,10 @@ package com.kenber.view;
  */
 public interface DoubleStickHeadersListAdapter {
     /**
-     * level 0 (sticky):return 0
-     * level 1 (sticky next to level 1 header it belongs to):return 1
-     * level 2 (not stick):return 2
+     * level 0 (sticky):return DoubleStickHeaderLevelEnum.HEADER_LEVEL_0
+     * level 1 (sticky next to level 1 header it belongs to):return DoubleStickHeaderLevelEnum.HEADER_LEVEL_1
+     * level 2 (not stick):return DoubleStickHeaderLevelEnum.ROWS
      */
-    int getHeaderLevel(int position);
+
+    DoubleStickHeaderLevelEnum getHeaderLevel(int position);
 }
